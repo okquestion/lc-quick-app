@@ -1,0 +1,124 @@
+<template>
+  <!-- template里只能有一个根节点 -->
+  <div class="detailContainer">
+    <div class="header" id="header">
+      <text class="title">{{noticeDetail.notify_name}}</text>
+    </div>
+    <text class='time'>{{noticeDetail.add_time}}</text>
+    <image class='img' src="{{noticeDetail.pics ? noticeDetail.pics : '/Common/icont-img@2x.png'}}"></image>
+    <div class="content">
+      <richtext type="html" class="rich-text">{{noticeDetail.content}}</richtext>
+    </div>
+    <!-- <div class="contentCss">
+      <block for="{{ (index, item) in [] }}">
+        <div class="detailCss">
+          <div class="img">
+            <image style="width: 100%;" src={{item.url}}></image>
+          </div>
+          <div class="imgInfo">
+            <div class="info">
+              <text></text>
+            </div>
+          </div>
+          <div class="content">
+            <stack>
+              <div class="slot"></div>
+              <text show="{{item.content && item.content !== ''}}" class="txt">{{'     ' + item.content.trim()}}</text>
+            </stack>
+          </div>
+        </div>
+      </block>
+    </div> -->
+    <!-- <div class="bottomCategory" onclick="createShortIcon">
+      <text>点击创建桌面图标</text>
+    </div> -->
+  </div>
+</template>
+
+<style lang="less">
+  @import './detail.less';
+</style>
+
+<script>
+import prompt from '@system.prompt'
+import router from '@system.router'
+import shortcut from '@system.shortcut'
+import request from '../../lib/request'
+import storage from '../../lib/storage'
+import shareSe from '@service.share'
+export default {
+  protected: {
+    noticeId: '',                        // id
+    pageTitle: '物业公告',                // 页面标题
+    noticeDetail: {},                    // 详情
+    isCreateIcon: false,                 // 是否创建桌面图标
+    content: 'adhkadasdasdasdadsdsa<p>djkasdnkasdsadasd</p>dasdasdasd<image src=http://lxwy.yufewell.cn/uploads/1564307409_39258.jpg"></image>'
+  },
+  
+  onInit() {
+    this.getDetail()
+    setTimeout(() => {
+      this.$page.setTitleBar({ text: this.pageTitle })
+    }, 0)
+  },
+  onReady() {
+    // this.$element('header').disabled = false
+  },
+  // 分享 && 关于
+  onMenuPress () {
+    const that = this
+    prompt.showContextMenu({
+      itemList: [
+        '分享',
+        '关于',
+        '取消'
+      ],
+      itemColor: '#252525',
+      success: function (data) {
+        if (data && data.index === 0) {
+          that.share()
+        } else if (data && data.index === 1) {
+          router.push({
+            uri: '/About',
+            params: { }
+          })
+        }
+      },
+      cancel: function (data) {
+        console.info('handling cancel', JSON.stringify(data))
+      },
+      fail: function (data, code) {
+        console.error(`handling fail, code = ${code}`)
+      }
+    })
+  },
+  share() {
+    // const uri = await request.download('http:' + this.production.coverImages[0].url + '@!k160')
+    shareSe.share({
+      shareType: 0,
+      title: '分享的标题',
+      summary: '分享的摘要',
+      targetUrl: 'https://www.autodis.cn',
+      imagePath: '/Common/logo.png',
+      success: function (data) {
+        console.info('handling success')
+      },
+      fail: function (data, code) {
+        console.error(data)
+        console.error(`handling fail, code = ${code}`)
+      }
+    })
+  },
+  // 获取组图详情数据
+  getDetail() {
+    if (!this.noticeId) {
+      return
+    }
+    request.get(`notify/detail/${this.noticeId}`, { notify_id: this.noticeId }).then(({ data }) => {
+      if (data && data.notify_detail) {
+        this.noticeDetail = data.notify_detail
+      }
+    })
+  },
+}
+</script>

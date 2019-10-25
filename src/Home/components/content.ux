@@ -1,0 +1,94 @@
+<template>
+  <div class="ct-container">
+    <div if="{{imgContent}}">
+      <text @click="clickExplan" class="ct-content">{{imgContent}}<span if="{{isShow}}" class="ct-explan">   {{explanTxt}}</span></text>
+    </div>
+    <div @click="clickLook" class="ct-look" if="{{imgContent}}">
+      <text class="ct-lookTxt">{{lookTxt}}</text>
+    </div>
+  </div>
+</template>
+
+<style lang="less">
+  .ct-container {
+    padding: 0 30px;
+    flex-direction: column;
+    background-color: #ffffff;
+    width: 100%;
+  }
+  .ct-content {
+    font-size: 28px;
+    color: #333333;
+    line-height: 38px;
+  }
+  .ct-explan {
+    font-size: 28px;
+    color: #999999;
+    line-height: 38px;
+    padding-left: 5px;
+  }
+  .ct-look {
+    padding: 12px 0;
+  }
+  .ct-lookTxt {
+    font-size: 22px;
+    color: #333333;
+  }
+
+</style>
+
+<script>
+import prompt from '@system.prompt'
+import router from '@system.router'
+import request from '../../lib/request'
+import storage from '../../lib/storage'
+export default {
+  props: {
+    content: {
+      type: String,
+      default: ''
+    },
+  },
+  data() {
+    return {
+      lookTxt: '查看翻译',
+      explanTxt: '...展开',
+      isExplan: false,            // 是否展开
+      isLook: false,              // 是否点击查看**
+      isShow: false,              // 是否显示展开收起
+      txt: this.content,          // 作为一个第三方保存content的变量
+      imgContent: this.content    // 作为属性传值
+    }
+  },
+  onInit() {
+    const txt = this.content
+    if (this.imgContent) {
+      if (this.imgContent.length > 50) {
+        this.imgContent = this.imgContent.substr(0, 50)
+        this.isShow = true
+      } else {
+        this.isShow = false
+      }
+    }
+  },
+  
+  // 查看**
+  clickLook(evt) {
+    this.isExplan = !this.isExplan
+    this.lookTxt = !this.isExplan ? '查看原文' : '查看翻译'
+  },
+  
+  // 展开／收起
+  clickExplan(evt) {
+    if (this.isShow) {
+      this.isLook = !this.isLook
+      this.explanTxt = !this.isLook ? '...展开' : '收起'
+      if (this.isLook) {
+        this.imgContent = this.txt
+      } else {
+        this.imgContent = this.imgContent.substr(0, 50)
+      }
+    }
+  }
+}
+</script>

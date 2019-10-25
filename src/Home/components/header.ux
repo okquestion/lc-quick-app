@@ -1,0 +1,109 @@
+<import name="hk-button" src="../../components/hk-button/index"></import>
+
+<template>
+  <div class="hd-container">
+    <div class="hd-left">
+      <image @click="goPage" class="hd-img" src="{{url}}"></image>
+      <div class="hd-nameCss">
+        <text class="hd-name">{{name}}</text>
+        <text class="hd-date">{{date}}</text>
+      </div>
+    </div>
+    <div class="hd-btn" if="{{!!isfllow}}">
+      <hk-button @on-click="clickFllow" value="关注" bg-color="#FE2346" f-color="#ffffff" f-size="{{26}}" width="{{120}}" height="{{46}}" border-radius="{{8}}" border-color="#FE2446"></hk-button>
+    </div>
+  </div>
+</template>
+
+<style lang="less">
+  .hd-container {
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 30px 16px;
+    width: 100%;
+    background-color: #ffffff;
+  }
+  .hd-left {
+    justify-content: flex-start;
+  }
+  .hd-img {
+    width: 64px;
+    height: 64px;
+    border-style: solid;
+    border-width: 1px;
+    border-color: rgba(0,0,0,0.06);
+    border-radius: 32px;
+  }
+  .hd-nameCss {
+    flex-direction: column;
+    align-content: space-between;
+    padding-left: 12px;
+  }
+  .hd-name {
+    font-size: 26px;
+    color: #000000;
+  }
+  .hd-date {
+    font-size: 22px;
+    color: #999999;
+  }
+</style>
+
+<script>
+  import prompt from '@system.prompt'
+  import router from '@system.router'
+  import request from '../../lib/request'
+  import storage from '../../lib/storage'
+
+  export default {
+    props: {
+      url: {
+        type: String,
+        default: ''
+      },
+      name: {
+        type: String,
+        default: ''
+      },
+      date: {
+        type: String,
+        default: ''
+      },
+      fllow: {
+        type: String,
+        default: '0'
+      },
+      authid: {
+        type: Number,
+      }
+    },
+
+    data() {
+      return {
+        isfllow: this.fllow    // 是否关注
+      }
+    },
+
+    onInit() {
+    },
+    
+    clickFllow(evt) {
+      this.isfllow = false
+      prompt.showToast({
+        message: `已关注`
+      })
+    },
+
+    goPage() {
+      if (this.authid) {
+        router.push({
+          uri: '/Profile',
+          params: {
+            authId: this.authid
+          }
+        })
+      }
+    }
+
+  }
+</script>

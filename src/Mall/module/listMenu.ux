@@ -1,0 +1,104 @@
+<template>
+    <div class="list-container">
+        <div for="item in couponlist" class="list">
+            <stack class="stack">
+                <image class="list-img" src="{{item.icon || 'http://img.redocn.com/sheying/20150213/mulanweichangcaoyuanfengjing_3951976.jpg'}}"></image>
+                <input class="time" type="button" value="{{'有效期至：' + item.end_time.substring(0, 10)}}" />
+            </stack>
+            <div class="bottom">
+                <text class="coupon-name">{{item.coupon_name}}</text> 
+                <input class="btn {{item.status === '0' ? 'wlq' : 'lq' }}" type="button" value="{{item.status === '0' ? '去领取' : '已领取'}}" onclick="routePage(item.coupon_id)" />
+            </div>
+        </div>
+    </div>
+</template>
+<style>
+.list-container {
+    display: flex;
+    flex-direction:column;
+    background-color:#FAFAFA;
+} 
+
+.stack {
+    /* height: 300px; */
+    justify-content: flex-end;
+    align-items: flex-end;
+ }
+
+.time {
+    width:239px;
+    height:34px;
+    margin-right: 40px;
+    background-color:rgba(0,0,0,0.5);
+    border-radius:10px;
+    font-size:20px;
+    font-family:PingFangSC-Regular;
+    font-weight:400;
+    color:rgba(252,252,252,1);
+    line-height:20px;
+}
+
+.list-img {
+    border-radius: 10px;
+    width:599px;
+    height:273px;
+    margin-top: 20px;
+}
+
+.list {
+    flex-direction: column;
+    margin-bottom: 10px;
+    background-color:#FFFFFF;
+}
+
+.bottom {
+    padding: 12px 38px;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    margin-top: 26px;
+}
+
+.coupon-name {
+    margin-left: 0;
+    margin-right: 0; 
+    width:111px;
+    height:26px;
+    font-size:26px;
+    font-family:PingFangSC-Regular;
+    font-weight:400;
+    color:rgba(51,51,51,1);
+    line-height:26px;
+}
+
+.btn {
+    width:113px;
+    height:43px;
+    font-size:22px;
+    border-radius:21px;
+    font-family:PingFangSC-Regular;
+    font-weight:400;
+}
+
+.lq {
+    background-color:rgba(153,153,153,1);
+    color:rgba(255,255,255,1);
+}
+.wlq {
+  background-color:rgba(142,41,39,1);
+  color:rgba(255,255,255,1);
+}
+
+</style>
+
+<script>
+    import router from '@system.router'
+    export default {
+        props: ['couponlist'],
+        onInit() {
+        },
+        routePage(id) {
+            router.push({ uri: '/Mall/CouponsShow', params: { couponId: id } })
+        },
+    }
+</script>

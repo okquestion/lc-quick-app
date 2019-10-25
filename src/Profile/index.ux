@@ -1,0 +1,185 @@
+<template>
+  <div class="lc-page">
+    <div class="header">
+      <div class="bgc">
+        <div class="header-top">
+          <text class="change" @click="changeAddr">切换小区</text>
+        </div>
+        <div class="header-bottom">
+          <image class="head" src="/Common/profile/icon-profile-touxiang@2x.png"></image>
+          <div class="right">
+            <text class="name">{{name}}</text>
+            <text class="addr">{{address}}</text>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tabs">
+      <div for="{{tabs}}" class="tab-item" @click="tabPage($item.routeName)">
+        <image class="img" src="{{$item.url}}" alt=""></image>
+        <text class="icon-title">{{$item.title}}</text>
+      </div>
+    </div>
+    <div class="btn-css">
+      <input class="btn" type="button" value="退出登陆" onclick="onLoginOut" />
+    </div>
+  </div>
+</template>
+
+<style lang="less">
+  @import './index.less';
+</style>
+
+<script>
+import prompt from '@system.prompt'
+import router from '@system.router'
+import shortcut from '@system.shortcut'
+import User from '../lib/user'
+import storage from '../lib/storage'
+import request from '../lib/request'
+const user = new User()
+
+export default {
+  props: {
+    users: {
+      type: Object,
+      default: {}
+    }
+  },
+  data() {
+    return {
+      userInfo: this.users,
+      name: this.users.name || '暂无',
+      tabs: [
+        // { url: '/Common/profile/icon-profile-jilu@2x.png', title: '缴费记录', routeName: '/PaymentRecords' },
+        { url: '/Common/profile/icon-profile-gongdan@2x.png', title: '报修记录', routeName: 'WorkOrder/HistoryList' },
+        { url: '/Common/profile/icon-profile-youhuiquan@2x.png', title: '优惠券', routeName: '/Mall/MyCoupns' },
+        { url: '/Common/profile/icon-profile-tousujianyi@2x.png', title: '投诉建议', routeName: '/Complain/AddComplain' },
+        { url: '/Common/profile/icon-profile-kefu@2x.png', title: '联系客服', routeName: 'goPhone' },
+      ],
+      selectAddr: {},
+      address: '',
+      tellPhone: ''
+    }
+  },
+  async onInit() {
+    const selectAddr = await storage.getJSON('selectAddr') || {}
+    this.selectAddr = selectAddr
+    this.address = selectAddr.address || ''
+    if (selectAddr && selectAddr.address_id, selectAddr.community_id) {
+      this.getPhone(selectAddr.address_id, selectAddr.community_id)
+    }
+  },
+  async onReady() {
+    // setTimeout(() => {
+    //   this.getShortcut()
+    // }, 3000)
+  },
+  changeAddr () {
+    router.push ({
+      uri: '/SelectAddr'
+    })
+  },
+  tabPage(path) {
+    if (path && path === 'goPhone') {
+      this.showDialog()
+      return
+    }
+    if (path) {
+      router.push ({
+        uri: path
+      })
+    }
+  },
+  onLoginOut() {
+    user.logout()
+  },
+  getShortcut () {
+    const _self = this
+    shortcut.hasInstalled({
+      success: function (ret) {
+        if (ret) {
+          // 桌面图标已创建
+        } else {
+          // 桌面图标未创建
+          _self.createShortIcon()
+        }
+      }
+    })
+  },
+  installShortcut () {
+    shortcut.install({
+      success: function () {
+        prompt.showToast({
+          message: '桌面图标创建成功'
+        })
+      }
+    })
+  },
+  // 创建桌面图标
+  createShortIcon() {
+    const _this = this
+    prompt.showContextMenu({
+      itemList: [ '创建桌面快捷图标', '不了，谢谢！' ],
+      itemColor: '#252525',
+      success:  async function (data) {
+        if (data && data.index === '0') {
+          _this.installShortcut()
+          await storage.set('create', 1)
+        }
+      },
+      cancel: async function (data) {
+        await storage.set('create', null)
+        console.info('handling cancel', JSON.stringify(data))
+      },
+      fail: async function (data, code) {
+        await storage.set('create', null)
+        console.error(`handling fail, code = ${code}`)
+      }
+    })
+  },
+  showDialog () {
+    const _self = this
+    prompt.showDialog({
+      title: '客服电话',
+      message: '是否拨打客服电话',
+      buttons: [
+        {
+          text: '确定',
+          color: '#0faeff'
+        },
+        {
+          text: '取消'
+        }
+      ],
+      success: function (ret) {
+        // ret.index 模拟器是‘0’，华为手机是0
+        if (ret && Number(ret.index) === 0) {
+          // launch phone app
+          if (_self.tellPhone) {
+            router.push({
+              uri: `tel:${_self.tellPhone}`
+            })
+          } else {
+            prompt.showToast({
+              message: '客服电话有误，请重新确认'
+            })
+          }
+        }
+      },
+      cancel: function () {
+        prompt.showToast({
+          message: '取消'
+        })
+      }
+    })
+  },
+  getPhone(address_id, community_id) {
+    request.get(`service/telephone?address_id=${address_id}&community_id=${community_id}`).then(({ data }) => {
+      // service_telephone: {repair_service_telephone: "4008000001", customer_service_telephone: "4008000002"}customer_service_telephone: "4008000002"repair_service_telephone: "4008000001"__proto__: Object__proto__: Object
+      const tellPhone = data.service_telephone.customer_service_telephone || ''
+      this.tellPhone = Number(tellPhone)
+    })
+  },
+}
+</script>

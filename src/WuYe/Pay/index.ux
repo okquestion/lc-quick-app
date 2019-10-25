@@ -1,0 +1,93 @@
+<template>
+  <div class="root">
+    <div class="header-container">
+      <div class="info">
+        <div class="info-item border-item">
+          <text class="label">缴费类型：</text>
+          <text class="right" style="color: #333333;">物业费</text>
+        </div>
+        <div class="info-item" style="">
+          <text class="label">缴费金额（元）：</text>
+          <div class="right">
+            <text class="money">¥</text>
+            <text class="value">{{totalMoney}}</text>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="middle">
+      <div style="margin: 22px 0px;">
+        <text class="type-title">支付方式</text>
+      </div>
+      <div class="border-item item">
+        <div class="icon-item">
+          <image class="icon" src="../../Common/wuye/weixin@2x.png"></image>
+          <text class="type">微信支付：</text>
+        </div>
+        <image @click="selectItem(0)" class="select" src="../../Common/wuye/{{selectedType === 1 ? 'icon-no-select@2x' : 'all_selects'}}.png" />
+      </div>
+      <div class="item">
+        <div class="icon-item">
+          <image class="icon" src="../../Common/wuye/zhifubao@2x.png"></image>
+          <text class="type" style="color:rgba(26,172,235,1);">支付宝支付：</text>
+        </div>
+        <image @click="selectItem(1)" class="select" src="../../Common/wuye/{{selectedType === 0 ? 'icon-no-select@2x' : 'all_selects'}}.png" />
+      </div>
+    </div>
+    <div class="fixed-container">
+      <input class="btn" type="button" value="确认支付" onclick="onConfirm" />
+    </div>
+  </div>
+</template>
+
+<style lang="less">
+  @import './index.less';
+</style>
+
+<script>
+import prompt from '@system.prompt'
+import router from '@system.router'
+import request from '../../lib/request'
+export default {
+  protected: {
+    totalMoney: 0,
+    selectedType: 0,
+  },
+  onInit() {
+  },
+  selectItem(id) {
+    this.selectedType = id
+  },
+  onConfirm() {
+    // prompt.showDialog({
+    //   title: '',
+    //   message: '是否取消订单？',
+    //   buttons: [
+    //     {
+    //       text: '否',
+    //       color: '#1AACEB',
+    //     },
+    //     {
+    //       text: '是',
+    //       color: '#8E2927'
+    //     }
+    //   ],
+    //   success: function(data) {
+    //     console.info('handling callback', data)
+    //   },
+    //   cancel: function() {
+    //     console.info('handling cancel')
+    //   },
+    //   fail: function(data, code) {
+    //     console.error(`handling fail, code = ${code}`)
+    //   }
+    // })
+    // prompt.showToast({
+    //   message: `已选择, ${this.selectedType === 0 ? '微信' : '支付宝'}支付，暂无支付功能`
+    // })
+  },
+  onOrder() {
+    // payment/unifiedorder
+  }
+}
+</script>

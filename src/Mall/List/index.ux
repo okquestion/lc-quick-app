@@ -1,0 +1,152 @@
+<import name="lc-input" src="../../components/lc-input/index"></import>
+
+<template>
+  <div class="list-page">
+    <div class="header">
+      <image @click="goBack" class="back" src="/Common/icon-back-black-arrow.png"></image>
+      <div class="search" @click="toSearch">
+        <!-- <lc-input containercss="height: 39px;padding-left: 15px" searchcss="width: 20px; height: 20px;" showsearch="{{true}}" disabled="{{true}}" placeholder=''></lc-input> -->
+      </div>
+    </div>
+    <div class="type">
+      <div>
+        <image class="image" src="../../Common/mall/{{coupon_type === '1' ? 'shengxian-1@2x.png' : 'shengxian-2@2x.png'}}" onclick="selectTag('1')" ></image>
+        <text>生鲜水果</text>
+      </div>
+      <div>
+        <image class="image1" src="../../Common/mall/{{coupon_type === '2' ? 'jiaju-copy-1@2x.png' : 'jiaju-copy-2@2x.png'}}" onclick="selectTag('2')"></image>
+        <text>家具好物</text>
+      </div>
+      <div>
+        <image class="image1" src="../../Common/mall/{{coupon_type === '3' ? 'riyongpin-1@2x.png' : 'riyongpin-2@2x.png'}}" onclick="selectTag('3')"></image>
+        <text>家居日用</text>
+      </div>
+      <div>
+        <image class="image1" src="../../Common/mall/{{coupon_type === '4' ? 'present-fill-1@2x.png' : 'present-fill-2@2x.png'}}" onclick="selectTag('4')"></image>
+        <text>精选礼品</text>
+      </div>
+    </div>
+    <list class="list-container" onscrollbottom="renderMoreListItem">
+      <block for="item in coupon_list">
+        <!-- product -->
+        <list-item type="product" class="list" onclick="routePage(item.coupon_id)">
+          <stack class="stack">
+            <image class="list-img" src="{{item.icon || '/Common/icon-coupon-bgc@2x.png'}}"></image>
+            <input class="time" type="button" value="{{'有效期至：' + item.end_time.substring(0, 10)}}" />
+          </stack>
+          <div class="bottom">
+            <text class="coupon-name">{{item.coupon_name}}</text> 
+            <input class="btn {{item.is_get === '0' ? 'wlq' : 'lq' }}" type="button" value="{{item.is_get === '0' ? '去领取' : '已领取'}}" onclick="routePage(item.coupon_id)" />
+          </div>
+        </list-item>
+      </block>
+      <list-item type="loadStatus" class="load-status">
+        <progress type="circular" show="{{hasMoreData}}"></progress>
+        <text show="{{hasMoreData}}"></text>
+        <text show="{{isMoreData}}">没有更多了</text>
+      </list-item>
+    </list>
+  </div>
+</template>
+<style lang="less">
+    @import './index.less';
+</style>
+<script>
+import request from '../../lib/request'
+import storage from '../../lib/storage'
+import router from '@system.router'
+export default {
+  protected: {
+    coupon_type: '1',
+    pageIndex: 1,
+    pageSize: 5,
+    coupon_list: [],
+    total: 0,
+    hasMoreData: true,           // 上拉加载数据状态
+    isLoadingData: false,         // 是否正在fetch请求数据
+    isMoreData: false,            // 是否还有更多数据
+    community_id: '',
+  },
+  async onInit() {
+    const selectAddr = await storage.getJSON('selectAddr') || {}
+    const tabId = await storage.getJSON('tabId') || this.coupon_type
+    this.coupon_type = tabId + ''
+    const id = selectAddr.community_id || ''
+    try {
+      if (id) {
+        this.community_id = id
+        await this.getList()
+      }
+    } catch(e) {
+      console.error(e)
+    }
+  },
+  async onShow() {
+    const tabId = await storage.getJSON('tabId') || this.coupon_type
+    this.coupon_type = tabId + ''
+  },
+  async selectTag(id) {
+    this.pageIndex = 1
+    this.coupon_type = id
+    this.getList()
+    await storage.set('tabId', this.coupon_type)
+  },
+  // 滑动到底部时加载更多
+  renderMoreListItem () {
+    if (this.coupon_list.length >= this.total) {
+      this.isMoreData = true
+      return
+    }
+    if (!this.isLoadingData) {
+      this.hasMoreData = true
+      this.isMoreData = false
+    }
+    this.pageIndex++
+    this.getList(true)
+    setTimeout(() => {
+      this.hasMoreData = false
+    }, 3000)
+  },
+  // 获取列表数据
+  getList(doRender = false) {
+    request.get(`coupon/list?community_id=${this.community_id}&coupon_type=${this.coupon_type}&page=${this.pageIndex}&pagesize=${this.pageSize}`).then(({ data }) => {
+      const list = data.coupon_list || []
+      console.log(list)
+      if (!data) {
+        if (doRender) {
+          this.hasMoreData = false
+          return
+        }
+      }
+      if (!Array.isArray(list) || !list.length) {
+        setTimeout(() => {
+          this.isMoreData = true
+          this.hasMoreData = false
+        }, 3000)
+      }
+      this.total = +(data && data.pager && data.pager.total || 0)
+      if (doRender) {
+        this.coupon_list = this.coupon_list.concat(list)
+      } else {
+        this.hasMoreData = false
+        this.coupon_list = list 
+      }
+    })    
+  },
+  toSearch() {
+    // router.push ({
+    //   uri: '/Index'
+    // })
+  },
+  goBack() {
+    router.back()
+  },
+  routePage(id) {
+    this.coupon_type = '1'
+    router.push({
+      uri: '/Mall/CouponsShow',
+      params: { couponId: id } 
+    })
+  },
+}
+</script>

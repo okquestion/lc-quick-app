@@ -1,0 +1,155 @@
+<template>
+  <stack>
+    <div class="quist-input containerCss">
+      <div if="{{showsearch}}">
+        <image src="/Common/icon-search@2x.png" />
+      </div>
+      <input id="quist-input-box" class="quist-input-box" style="font-size: {{size}};" name="{{name}}" maxlength="{{maxlen}}" type="{{type}}" value="{{value}}" placeholder="{{placeholder}}" disabled="{{disabled}}" @focus="onfocus" @blur="onblur" @change="onchange" />
+      <div class="quist-input-suffix {{ showClear ? 'show-close' : 'hide-close'}}" @click="clearClick">
+        <image src="{{suffixIcon}}" class="quist-input-img" />
+      </div>
+    </div>
+  </stack>
+</template>
+
+<style lang="less">
+  .quist-input {
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .containerCss {
+    height: 68px;
+    padding-left: 30px;
+    padding-right: 30px;
+  }
+  .bColor {
+    border-color: #8E2927;
+  }
+  .quist-input-box {
+    font-size: 22px;
+    font-family:PingFangSC-Regular;
+    font-weight:400;
+    placeholder-color:rgba(153,153,153,1);
+    color: #000;
+    line-height:31px;
+    flex: 1;
+    border: 0;
+  }
+  .show-close {
+    opacity: 1;
+  }
+  .hide-close {
+    opacity: 0;
+  }
+  .quist-input-img {
+    width: 30px;
+    height: 30px;
+  }
+</style>
+
+<script>
+export default {
+  props: {
+    placeholder: {
+      type: String,
+      default: ''
+    },
+    disabled: {
+      type: Boolean,
+      default: false
+    },
+    showsearch: {
+      type: Boolean,
+      default: false
+    },
+    width: {
+      type: String,
+      default: '100%'
+    },
+    height: {
+      type: Number,
+      default: 68
+    },
+    suffix: {
+      type: String,
+      default: ''
+    },
+    searchIcon: {
+      type: String,
+      default: ''
+    },
+    size: {
+      type: String,
+      default: '56px'
+    },
+    border: {
+      type: String,
+      default: '2px'
+    },
+    type: {
+      type: String,
+      default: 'text'
+    },
+    maxlen: {
+      type: Number,
+      default: 500
+    },
+    name: {
+      type: String,
+      default: 'input'
+    },
+    inputvalue: {
+      type: String,
+      default: ''
+    }
+  },
+  data() {
+    return {
+      value: this.inputvalue,
+      showClear: false,
+      replaceShow: true
+    }
+  },
+  onInit() {
+    this.initialize()
+  },
+  initialize() {
+    this.suffixIcon = this.suffix
+  },
+  onchange(e) {
+    this.value = e.value
+    if (this.value) {
+      this.showClear = true
+    } else {
+      this.showClear = false
+    }
+    this.$emit('onChange', { value: this.value })
+  },
+  onfocus() {
+    this.$emit('onFocus', { value: this.value })
+  },
+  onblur() {
+    this.$emit('onBlur', { value: this.value })
+  },
+  clearClick() {
+    this.value = ''
+    this.showClear = false
+    this.$emit('onClear')
+  },
+  searchClick() {
+    this.blur()
+    this.$emit('onClick', { value: this.value })
+  },
+  focus() {
+    this.$element('quist-input-box').focus({
+      focus: true
+    })
+  },
+  blur() {
+    this.$element('quist-input-box').focus({
+      focus: false
+    })
+  }
+}
+</script>

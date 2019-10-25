@@ -1,0 +1,245 @@
+<template>
+  <div class="work-page">
+    <div class="header">
+      <div class="back">
+        <image @click="goBack" src="/Common/icon-back-black-arrow.png"></image>
+      </div>
+      <text class="title">物业报修</text>
+      <text @click="goHistoty" class="histoty">历史记录</text>
+    </div>
+    <div class="top">
+      <text class="name">住址信息：</text>
+      <text class="name addr">{{address}}</text>
+    </div>
+    <div class="container">
+      <text class="title">报修内容（必填）</text>
+      <div style="flex-grow: 1;border: 1px solid #cccccc;">
+        <textarea class="xui-input-round" @change="changeTextArea" style="height: 200px;flex-grow: 1;" maxlength="400" placeholder="请输入报修内容"></textarea>
+      </div>
+    </div>
+    <div class="add" >
+      <text>添加图片</text>
+      <div class="add-css">
+        <image @click="pickImage" class="add-icon" src="/Common/tianjia@2x.png"></image>
+      </div>
+      <div class="content">
+        <block for="{{fileList}}">
+          <div class="image-container">
+            <!-- <image class="image" src="{{pickImageUri}}" show="{{pickImageUri != ''}}"></image> -->
+            <image class="xui-col" style="object-fit: fill;" src="{{$item}}"></image>
+          </div>
+        </block>
+      </div>
+    </div>
+    <div class="fixed-phone">
+      <image src="/Common/dianhua1@2x.png"></image>
+      <input class="phone" type="button" value="电话报修" onclick="onPhone" />
+    </div>
+    <div class="fixed-container">
+      <input class="btn" type="button" value="立即提交" onclick="onConfirm" />
+    </div>
+  </div>
+</template>
+
+<style lang="less">
+  @import './index.less';
+</style>
+
+<script>
+import prompt from '@system.prompt'
+import router from '@system.router'
+import media from '@system.media'
+import image from '@system.image'
+import requestFetch from '../../lib/request'
+import request from '@system.request'
+import storage from '../../lib/storage'
+import { getUser } from '../../lib/login'
+export default {
+  data() {
+    return {
+      deviceInfo: {},
+      selectAddr: {},
+      fileList: [],
+      address: '',
+      repairPhone: '',
+      content: '',
+      pickImageUri: '',
+      imgUrl: '',
+      token: '',
+    }
+  },
+  async onInit() {
+    const selectAddr = await storage.getJSON('selectAddr') || {}
+    const user = await getUser()
+    this.token = user.token || ''
+    this.selectAddr = selectAddr
+    this.address = selectAddr.address || ''
+    if (selectAddr && selectAddr.address_id && selectAddr.community_id) {
+      this.getPhone(selectAddr.address_id, selectAddr.community_id)
+    }
+
+  },
+  goHistoty () {
+    router.push ({
+      uri: '/WorkOrder/HistoryList'
+    })
+  },
+  goBack() {
+    router.back()
+  },
+  onPhone() {
+    this.showPhoneDialog()
+  },
+  getPhone(address_id, community_id) {
+    requestFetch.get(`service/telephone?address_id=${address_id}&community_id=${community_id}`).then(({ data }) => {
+      const repair_service_telephone = data.service_telephone.repair_service_telephone || ''
+      this.repairPhone = Number(repair_service_telephone)
+    })
+  },
+  changeTextArea(e) {
+    if (e && e.value) {
+      this.content = e.value
+    }
+  },
+  onConfirm() {
+    if (!this.selectAddr.address_id || !this.content) {
+      prompt.showToast({
+        message: `请输入报修的内容`
+      })
+      return
+    }
+    if (!Array.isArray(this.fileList) || !this.fileList.length) {
+      prompt.showToast({
+        message: `请选择报修的图片`
+      })
+      return
+    }
+    const _pics = this.fileList.join('@#@#@')
+    requestFetch.post('propertyrepair/create', { content: this.content, pics: _pics, address_id: this.selectAddr.address_id, community_id: this.selectAddr.community_id }).then((data) => {
+      if (data.code === 0) {
+        this.showConfirmDialog()
+      }
+    }).catch(e => {
+      prompt.showToast({
+        message: `error: ${e}`
+      })
+    })
+  },
+  showConfirmDialog () {
+    prompt.showDialog({
+      title: '物业报修',
+      message: '报修成功！',
+      buttons: [
+        {
+          text: '确定',
+          color: '#0faeff'
+        },
+      ],
+      success: function (ret) {
+        // ret.index 模拟器是‘0’，华为手机是0
+        if (ret && Number(ret.index) === 0) {
+          router.back()
+        }
+      },
+      cancel: function () {
+        prompt.showToast({
+          message: '取消'
+        })
+      }
+    })
+  },
+  showPhoneDialog () {
+    const _self = this
+    prompt.showDialog({
+      title: '报修电话',
+      message: '是否拨打报修电话',
+      buttons: [
+        {
+          text: '确定',
+          color: '#0faeff'
+        },
+        {
+          text: '取消'
+        }
+      ],
+      success: function (ret) {
+        // ret.index 模拟器是‘0’，华为手机是0
+        if (ret && Number(ret.index) === 0) {
+          // launch phone app
+          if (_self.repairPhone) {
+            router.push({
+              uri: `tel:${_self.repairPhone}`
+            })
+          } else {
+            prompt.showToast({
+              message: '报修电话有误，请重新确认'
+            })
+          }
+        }
+      },
+      cancel: function () {
+        prompt.showToast({
+          message: '取消'
+        })
+      }
+    })
+  },
+  // 选择图片
+  pickImage() {
+    const self = this
+    media.pickImage({
+      success: (data) => {
+        const uri = data.uri
+        self.pickImageUri = uri
+        self.uploadFile()
+      },
+      fail: function (erromsg, errocode) {
+        console.info(`### media.pickImages ### ${errocode}: ${erromsg}`)
+        prompt.showToast({
+          message: `${errocode}: ${erromsg}`
+        })
+      }
+    })
+  },
+  // 上传文件接口 file/upload
+  uploadFile() {
+    const self = this
+    request.upload({
+      url: 'http://lxwy.yufewell.cn/file/upload',
+      header: {
+        token: this.token,
+        'Content-Type': 'multipart/form-data'
+      },
+      files: [
+        {
+          uri: self.pickImageUri,
+          name: 'file',
+          filename: 'test.png',
+          type: 'image/jpg'
+        }
+      ],
+      data: [
+        {
+          name: 'param1',
+          value: 'value1'
+        }
+      ],
+      success: function (ret) {
+        if (ret.code && ret.code === 200) {
+          const _data = JSON.parse(ret.data)
+          const url = _data.data.url
+          self.fileUploadData = url
+          self.fileList.push(url)
+        }
+      },
+      fail: function (msg, code) {
+        self.fileUploadData = `${code}: ${msg}`
+        console.info(`### request.upload ### ${code}: ${msg}`)
+        prompt.showToast({
+          message: `${code}: ${msg}`
+        })
+      }
+    })
+  },
+}
+</script>

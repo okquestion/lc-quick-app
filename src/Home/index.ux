@@ -1,0 +1,146 @@
+<!-- <import name="lc-input" src="../components/lc-input/index"></import> -->
+<import name="lc-swiper" src="./components/ImgSwiper"></import>
+
+<template>
+  <div class="lc-page" style="">
+    <!-- 首页搜索暂时隐藏 -->
+    <!-- <div class="header">
+      <image src="/Common/icon-weizhi@2x.png"></image>
+      <text class="addr">{{communityName}}</text>
+      <div class="search" @click="toSearch">
+        <lc-input containercss="height: 39px;padding-left: 15px" searchcss="width: 20px; height: 20px;" showsearch="{{true}}" disabled="{{true}}" placeholder=''></lc-input>
+      </div>
+      <image class="message" src="/Common/icon-xiaoxi@2x.png"></image>
+    </div> -->
+    <lc-swiper loop="{{true}}" @on-click="clickDetail" autoplay="{{true}}" id="{{community_id}}"></lc-swiper>
+    <div class="tabs">
+      <div for="{{tabs}}" class="tab-item" @click="tabPage($item.routeName)">
+        <image class="img" src="{{$item.url}}" alt=""></image>
+        <text class="icon-title">{{$item.title}}</text>
+      </div>
+    </div>
+    <div class="coupon-banner">
+      <text style="font-size:22px;font-weight:500;color:rgba(142,41,39,1);">优惠推荐</text>
+      <text @click="toMore" style="font-size:22px; color:rgba(52,103,237,1);">更多></text>
+    </div>
+    <div class="coupon-list">
+      <block for="{{coupons}}">
+        <div class="coupon-item">
+          <!-- <stack class="stack"> -->
+          <image class="coupon-img" src="{{$item.icon || '/Common/icon-coupon-bgc@2x.png'}}" alt=""></image>
+          <!-- </stack> -->
+          <div class="bottom">
+            <text class="coupon-type">{{$item.coupon_name}}</text>
+            <text class="btn {{$item.is_get === '0' ? 'wlq' : 'lq' }}" @click="routePage($item.coupon_id)">{{$item.is_get === '0' ? '去领取' : '已领取'}}</text>
+          </div>
+        </div>
+      </block>
+    </div>
+  </div>
+</template>
+
+<style lang="less">
+  @import './index.less';
+</style>
+
+<script>
+import prompt from '@system.prompt'
+import router from '@system.router'
+import request from '../lib/request'
+import storage from '../lib/storage'
+
+export default {
+  props: {
+    users: {
+      type: Object,
+      default: {}
+    },
+    id: {
+      type: String,
+      default: ''
+    }
+  },
+  data() {
+    return {
+      userInfo: this.users,
+      selectAddr: this.address,
+      addr: '',
+      tabs: [
+        { url: '/Common/icon-gonggao@2x.png', title: '社区公告', routeName: '/Notice/NoticeList' },
+        // { url: '/Common/icon-jiaofei@2x.png', title: '物业缴费', routeName: '/WuYe/Home' },
+        { url: '/Common/icon-baoxiu@2x.png', title: '物业报修', routeName: 'Repair/AddRepair' },
+        { url: '/Common/icon-goods@2x.png', title: '隆鑫.商城', routeName: '/Mall/List' }
+      ],
+      coupons: [],
+      communityName: '',
+      page: 1,
+      pageSize: 3,
+      community_id: this.id,
+    }
+  },
+  async onInit() {
+    this.selectAddr = await storage.getJSON('selectAddr') || {}
+    this.communityName = this.selectAddr.community_name || ''
+    const id = this.selectAddr.community_id || ''
+    if (id) {
+      this.community_id = id
+      await this.initCoupons(id)
+    }
+  },
+  async initCoupons(community_id) {
+    await request.get(`coupon/list?community_id=${community_id}&page=${this.page}&pagesize=${this.pageSize}`).then((res) => {
+      if (res.code === 0) {
+        const _data = res.data.coupon_list || []
+        this.coupons = _data
+      }
+    }) 
+  },
+  routeDetail () {
+    router.push ({
+      uri: '/Detail'
+    })
+  },
+  toSearch() {
+    router.push ({
+      uri: '/Index'
+    })
+  },
+  toMore() {
+    router.push ({
+      uri: '/Mall/List'
+    })
+  },
+  // 领取优惠券 => 详情页
+  routePage(id) {
+    router.push({ uri: '/Mall/CouponsShow', params: { couponId: id } })
+  },
+  tabPage(path) {
+    if (path) {
+      router.push ({
+        uri: path,
+        params: path === '/WuYe/Home' ? { users: this.users } : {}
+      })
+    }
+  },
+  clickDetail(e) {
+    if (e && e.detail) {
+      const id = e.detail.banner_id
+      const type= e.detail.banner_type
+      if (!id) {
+        return
+      }
+      // banner类型,1社区公告,2社区活动,3企业资讯, 4优惠券
+      if (['1', '2', '3'].includes(type)) {
+        router.push({
+          uri: '/Notice/NoticeDetail',
+          params: {
+            noticeId: id,
+          }
+        })
+      } else {
+        this.routePage(id)
+      }
+    }
+  }
+}
+</script>

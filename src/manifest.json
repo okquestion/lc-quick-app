@@ -1,0 +1,248 @@
+{
+  "package": "lxwy.yufewell.cn",
+  "name": "隆鑫生活",
+  "versionName": "1.0.0",
+  "versionCode": "1",
+  "minPlatformVersion": "1020",
+  "icon": "/Common/logo@2x.jpeg",
+  "features": [
+    {
+      "name": "service.share",
+      "params": {
+        "appSign": "",
+        "qqKey": "",
+        "wxKey": "",
+        "sinaKey": ""
+      }
+    },
+    {
+      "name": "system.share"
+    },
+    {
+      "name": "system.prompt"
+    },
+    {
+      "name": "system.router"
+    },
+    {
+      "name": "system.shortcut"
+    },
+    {
+      "name": "system.fetch"
+    },
+    {
+      "name": "system.webview"
+    },
+    {
+      "name": "service.pay"
+    },
+    {
+      "name": "system.storage"
+    },
+    {
+      "name": "service.alipay"
+    },
+    {
+      "name": "system.device"
+    },
+    {
+      "name": "system.calendar"
+    },
+    {
+      "name": "system.request"
+    }
+  ],
+  "permissions": [
+    {
+      "origin": "*"
+    }
+  ],
+  "config": {
+    "logLevel": "debug",
+    "designWidth": 640,
+    "data": {}
+  },
+  "router": {
+    "entry": "Index",
+    "pages": {
+      "Index": {
+        "component": "index"
+      },
+      "WorkOrder/Main": {
+        "component": "index"
+      },
+      "WorkOrder/HistoryList": {
+        "component": "index"
+      },
+      "Profile": {
+        "component": "index"
+      },
+      "Home": {
+        "component": "index"
+      },
+      "About": {
+        "component": "index"
+      },
+      "Login": {
+        "component": "index"
+      },
+      "SelectAddr": {
+        "component": "index"
+      },
+      "Notice/NoticeList": {
+        "component": "index"
+      },
+      "Notice/NoticeDetail": {
+        "component": "index"
+      },
+      "Mall/List": {
+        "component": "index"
+      },
+      "Mall/CouponsShow": {
+        "component": "index"
+      },
+      "Mall/MyCoupns": {
+        "component": "index"
+      },
+      "WuYe/Home": {
+        "component": "index"
+      },
+      "PaymentRecords": {
+        "component": "index"
+      },
+      "WuYe/PayCostShow": {
+        "component": "index"
+      },
+      "WuYe/PayOrder": {
+        "component": "index"
+      },
+      "WuYe/Pay": {
+        "component": "index"
+      },
+      "Repair/AddRepair": {
+        "component": "index"
+      },
+      "Complain/ComplainList": {
+        "component": "index"
+      },
+      "Complain/AddComplain": {
+        "component": "index"
+      },
+      "Agree/Agreement": {
+        "component": "index"
+      },
+      "Agree/Privacy": {
+        "component": "index"
+      }
+    }
+  },
+  "display": {
+    "titleBarBackgroundColor": "#f2f2f2",
+    "titleBarTextColor": "#414141",
+    "titleBarText": "",
+    "fullScreen": false,
+    "titleBar": true,
+    "menu": true,
+    "pages": {
+      "About": {
+        "menu": false
+      },
+      "Login": {
+        "menu": false,
+        "titleBarText": "",
+        "titleBar": false
+      },
+      "SelectAddr": {
+        "menu": false,
+        "titleBarText": "",
+        "titleBar": true
+      },
+      "Index": {
+        "menu": false,
+        "titleBarText": "",
+        "titleBar": false
+      },
+      "WorkOrder/Main": {
+        "menu": false,
+        "titleBarText": "",
+        "titleBar": true
+      },
+      "Profile": {
+        "menu": false,
+        "titleBar": true
+      },
+      "Home": {
+        "menu": false,
+        "titleBar": false
+      },
+      "Notice/NoticeList": {
+        "menu": false,
+        "titleBarText": "物业公告",
+        "titleBar": true
+      },
+      "Notice/NoticeDetail": {
+        "menu": false,
+        "titleBarText": "公告详情",
+        "titleBar": true
+      },
+      "Mall/List": {
+        "menu": false,
+        "titleBarText": "隆鑫商城",
+        "titleBar": false
+      },
+      "Mall/MyCoupns": {
+        "titleBarText": "我的优惠券"
+      },
+      "WuYe/Home": {
+        "menu": false,
+        "titleBarText": "物业缴费",
+        "titleBar": true,
+        "titleBarBackgroundColor": "#8E2927",
+        "titleBarTextColor": "#FBFBFB"
+      },
+      "PaymentRecords": {
+        "titleBarText": "缴费记录"
+      },
+      "WuYe/PayCostShow": {
+        "titleBarText": "缴费详情"
+      },
+      "WuYe/PayOrder": {
+        "titleBarText": "物业缴费",
+        "menu": false
+      },
+      "WuYe/Pay": {
+        "titleBarText": "物业缴费",
+        "menu": false
+      },
+      "WorkOrder/HistoryList": {
+        "titleBarText": "历史记录",
+        "menu": false
+      },
+      "Repair/AddRepair": {
+        "titleBarText": "物业报修",
+        "menu": false,
+        "titleBar": false
+      },
+      "Complain/ComplainList": {
+        "titleBarText": "投诉记录",
+        "menu": false
+      },
+      "Complain/AddComplain": {
+        "titleBarText": "投诉建议",
+        "menu": false,
+        "titleBar": false
+      },
+      "Agree/Agreement": {
+        "menu": false,
+        "titleBarText": "隆鑫生活",
+        "titleBar": true
+      },
+      "Agree/Privacy": {
+        "menu": false,
+        "titleBarText": "隆鑫生活",
+        "titleBar": true
+      }
+    }
+  },
+  "windowSoftInputMode": "adjustPan"
+}

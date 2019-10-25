@@ -1,0 +1,48 @@
+<template>
+  <div id="header">
+    <web style="" id="web" src="http://lxwy.yufewell.cn/html/h5-privacy.html"></web>
+  </div>
+</template>
+
+<style lang="less">
+</style>
+
+<script>
+import prompt from '@system.prompt'
+import router from '@system.router'
+import shortcut from '@system.shortcut'
+import fetch from '@system.fetch'
+import webview from '@system.webview'
+export default {
+  protected: {
+    pageTitle: '隆鑫生活',                // 页面标题
+  },
+  
+  onInit() {
+  },
+  onReady() {
+    // webview.loadUrl({
+    //   url: ` `
+    // })
+   
+  },
+  onHide () {
+  },
+  onBackPress () {
+    // this.$element('web').canBack({
+    //   callback: () => {
+    //     this.$element('web').back()
+    //     // if (e) {
+    //     //   // 加载历史列表中的上一个 URL
+    //     //   this.$element('web').back()
+    //     // } else {
+    //     //   router.back()
+    //     // }
+    //   }
+    // })
+    // 阻止默认行为，等待异步操作
+    // return true
+  },
+}
+</script>
+  

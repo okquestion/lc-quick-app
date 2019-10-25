@@ -1,0 +1,68 @@
+<template>
+  <div class="tabs-container">
+    <tabs onchange="onChangeTabIndex" style="margin: 0;">
+      <tab-bar style="margin-top: -10px;">
+        <div for="{{tabs}}" class="tab-item">
+          <image class="img" src="/Common/{{currentIndex === $idx ? $item.select : $item.default }}" alt=""></image>
+          <text style="color: {{currentIndex === $idx ? 'rgba(142,41,39,1)' : ''}};" class="title">{{$item.title}}</text>
+        </div>
+      </tab-bar>
+    </tabs>
+  </div>
+</template>
+
+<style lang="less">
+  .tabs-container {
+    height: 84px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 999;
+    width: 100%;
+    border-top-width: 3px;
+    border-top-color: #EDEDED;
+    background-color:#ffffff;
+  }
+  .tab-item {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .title {
+    font-size:17px;
+    font-weight:400;
+    color:#999999;
+  }
+  .img {
+    width: 40px;
+    height: 40px;
+  }
+</style>
+
+<script>
+export default {
+  props: [
+    'name',
+  ],
+  data() {
+    return {
+      tabs: [
+        { name: 'Home', default: 'icon-home.png', select: 'icon-home-select.png', title: '首页' },
+        { name: 'WorkOrder', default: 'icon-gongdan.png', select: 'icon-gongdan-select.png', title: '工单' },
+        { name: 'Profile', default: 'icon-person-block.png', select: 'icon-person-block-select.png', title: '我的' },
+      ],
+      currentSelected: 'Home',
+      currentIndex: 0
+    }
+  },
+  onInit() {
+    // 监听属性变化
+    // this.$watch('currentIndex', 'onChangeTabIndex')
+  },
+  onChangeTabIndex(evt) {
+    this.currentIndex = evt.index
+    this.currentSelected = this.tabs[evt.index].name
+    this.$emit('onChangeTabIndex', { value: this.currentSelected, index: this.currentIndex })
+  }
+}
+</script>

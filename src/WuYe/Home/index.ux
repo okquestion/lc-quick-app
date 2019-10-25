@@ -1,0 +1,113 @@
+<template>
+  <div class="lc-page">
+    <div class="header">
+      <div class="bgc"></div>
+    </div>
+    <div class="info-container">
+      <div class="header-top">
+        <div class="header-top-left">
+          <image class="icon1" src="/Common/wuye/wuye-2@2x.png"></image>
+          <text class="label1">缴纳物业费</text>
+         </div>
+        <text class="status">{{payStatus}}</text>
+      </div>
+      <div class="header-bottom-item bd-bottom">
+        <div class="header-bottom-left">
+          <image class="icon" src="/Common/wuye/ren@2x.png"></image>
+          <text class="label">姓名</text>
+         </div>
+        <text class="value">{{users.name}}</text>
+      </div>
+      <div class="header-bottom-item bd-bottom">
+        <div class="header-bottom-left">
+          <image class="icon" src="/Common/wuye/dianhua1@2x.png"></image>
+          <text class="label">电话</text>
+         </div>
+        <text class="value">{{users.phone}}</text>
+      </div>
+      <div class="header-bottom-item">
+        <div class="header-bottom-left">
+          <image class="icon" style="height: 26px;" src="/Common/wuye/weizhi@2x.png"></image>
+          <text class="label">地址</text>
+         </div>
+        <text class="value">{{address}}</text>
+      </div>
+    </div>
+    <div class="btn-css">
+      <input class="btn" type="button" value="缴纳物业费" onclick="onConfirm" />
+    </div>
+    <text class="quick">快捷缴费</text>
+    <div class="tabs">
+      <div for="{{tabs}}" class="tab-item" @click="tabPage($item.routeName)">
+        <image class="img" src="{{$item.url}}" alt=""></image>
+        <text class="icon-title">{{$item.title}}</text>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style lang="less">
+  @import './index.less';
+</style>
+
+<script>
+import prompt from '@system.prompt'
+import router from '@system.router'
+import User from '../../lib/user'
+import storage from '../../lib/storage'
+import request from '../../lib/request'
+const user = new User()
+
+export default {
+  protected: {
+    users: {},
+    tabs: [
+      // { url: '/Common/wuye/shui@2x.png', title: '缴纳水费', routeName: '' },
+      // { url: '/Common/wuye/dian@2x.png', title: '缴纳电费', routeName: '' },
+      // { url: '/Common/wuye/ranqifei@2x.png', title: '缴纳燃气费', routeName: '' },
+      // { url: '/Common/wuye/icon-gongnuan@2x.png', title: '缴纳供暖费', routeName: '' },
+      { url: '/Common/wuye/wuye-2@2x.png', title: '缴纳物业费', routeName: '/WuYe/PayOrder' },
+      // { url: '/Common/wuye/icon-socar-parking@2x.png', title: '缴纳停车费', routeName: '' }
+    ],
+    selectAddr: {},
+    address: '',
+    payStatus: ''
+  },
+  async onInit() {
+    const userInfo = await user.getLocal()
+    if (userInfo) {
+      this.users = userInfo
+    }
+    const selectAddr = await storage.getJSON('selectAddr') || {}
+    this.selectAddr = selectAddr
+    this.address = selectAddr.address || ''
+    const id = selectAddr.address_id || ''
+    if (id) {
+      await this.getPrepayInfo(id)
+    }
+  },
+
+  getPrepayInfo(id) {
+    if (!id) {
+      return
+    }
+    request.get(`prepay?address_id=${5}`).then((res) => {
+      if (res.code === 0) {
+        this.payStatus = res.data.is_pre === '0' ? '已欠费' : ''
+      }
+    })
+  },
+  onConfirm () {
+    router.push ({
+      uri: '/WuYe/PayOrder'
+    })
+  },
+  tabPage(path) {
+    if (path) {
+      router.push ({
+        uri: path
+      })
+    }
+  },
+}
+</script>

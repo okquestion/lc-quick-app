@@ -1,0 +1,147 @@
+<import name="lc-input" src="../components/lc-input/index"></import>
+
+<template>
+  <div class="login-page">
+    <div class="top">
+      <image src="/Common/logo@2x.jpeg" class="logo" />
+    </div>
+    <div style="width: 80%; border: 2px solid rgba(142,41,39,1); border-radius: 34px;">
+      <lc-input inputvalue="{{name}}" id="name" name="name" size="22px"
+        maxlen="{{20}}" suffix="/Common/icon-edit-close.png" placeholder='请输入姓名' @on-focus="focus" @on-blur="blur"
+        @on-clear="clear" @on-change="nameChange"></lc-input>
+    </div>
+    <div style="width: 80%; border:2px solid rgba(159,156,156,1); border-radius: 34px; margin-top: 34px;">
+      <lc-input inputvalue="{{phone}}" id="phone" name="phone" size="22px"
+        maxlen="{{20}}" suffix="/Common/icon-edit-close.png" placeholder='请输入手机号' @on-focus="focus"
+        @on-blur="blur" @on-clear="clear" @on-change="phoneChange"></lc-input>
+    </div>
+    <div class="code" style="width: 80%; margin-top: 34px;">
+      <div style="flex: 1; border:2px solid rgba(159,156,156,1); border-radius: 34px; ">
+        <lc-input inputvalue="{{code}}" id="code" name="code"
+          maxlen="{{6}}" size="22px" placeholder='输入短信验证码' @on-focus="focus" @on-blur="blur"
+          @on-change="codeChange"></lc-input>
+      </div>
+      <div class="restart">
+        <text if="{{!countdownTime}}" @click="restartSend">{{tips}}</text>
+        <text else>{{countdownTime}}s</text>
+      </div>
+    </div>
+    <input class="submit" type="button" value="注册并登录" @click="submit" />
+    <div class="protocol">
+      <image src="/Common/{{isChecked ? 'checked@2x.png' : 'check@2x.png'}}" class="check" @click="onChecked" />
+      <text class="text1">点击登录即同意</text>
+      <text class="text2" @click="onPageAgree(0)">《隆鑫物业隐私协议》</text>
+      <text class="text1">和</text>
+      <text class="text2" @click="onPageAgree(1)">《隆鑫快应用协议》</text>
+    </div>
+  </div>
+</template>
+
+<style lang="less">
+  @import './index.less';
+</style>
+
+<script>
+import prompt from '@system.prompt'
+import router from '@system.router'
+import request from '../lib/request'
+import User from '../lib/user'
+import storage from '../lib/storage'
+const user = new User()
+export default {
+  timer: null,
+  protected: {
+    title: '手机号注册',
+    phone: '',
+    code: '',
+    name: '',
+    isBackPassword: false,
+    countdownTime: 0,
+    tips: '获取验证码',
+    isChecked: false
+  },
+  onInit() {
+    setTimeout(() => {
+      this.$child('name').focus()
+    }, 1000)
+  },
+  async onShow() {
+    const loginInfo = await storage.getJSON('loginInfo') || {}
+    this.phone = loginInfo.phone || this.phone
+    this.code = loginInfo.code || this.code
+    this.isChecked = loginInfo.isChecked || false
+  },
+  onDestroy() {
+    if (this.timer) clearInterval(this.timer)
+  },
+  async submit() {
+    if (!/^\d{6}$/.test(this.code)) {
+      return prompt.showToast({
+        message: '请输入正确的验证码！'
+      })
+    }
+    if (!this.isChecked) {
+      return prompt.showToast({
+        message: '请勾选隐私协议！'
+      })
+    }
+    await user.login(this.phone, this.code).then(res => {
+      if (res.code === 0) {
+        prompt.showToast({ message: '登录成功！' })
+        // 如果业主只有一套房子，直接进入首页，若业主有多套房子，进入选择页面
+        return router.push({
+          uri: '/SelectAddr',
+          params: {}
+        })
+      }
+    })
+  },
+  async onPageAgree(type) {
+    await storage.set('loginInfo', { name: this.name, phone: this.phone, code: this.code, isChecked: this.isChecked })
+    router.push({
+      uri: `/Agree/${type ? 'Agreement' : 'Privacy'}`,
+      params: {}
+    })
+  },
+  onChecked() {
+    this.isChecked = !this.isChecked
+  },
+  restartSend() {
+    if (!/^\d{11}$/.test(this.phone)) {
+      return prompt.showToast({ message: '请输入正确的手机号' })
+    }
+    this.countdownTime = 60
+    this.tips = '重新获取'
+    this.timer && clearInterval(this.timer)
+    this.timer = setInterval(() => {
+      this.countdownTime--
+      if (this.countdownTime <= 0 && this.timer) {
+        clearInterval(this.timer)
+        this.countdownTime = 0
+      }
+    }, 1000)
+    // 发起短信请求获取验证码
+    if (this.phone) {
+      request.get(`captcha?phone=${this.phone}`).then((res) => {
+        console.info('获取验证码', res)
+        if (res.code !== 0) {
+          prompt.showToast({
+            message: `error: ${res.msg}`
+          })
+        }
+      })
+    }
+  },
+  codeChange(e) {
+    this.code = e.detail.value
+  },
+  nameChange(e) {
+    this.name = e.detail.value
+  },
+  phoneChange(e) {
+    this.phone = e.detail.value
+  },
+  clear() {
+  },
+}
+</script>

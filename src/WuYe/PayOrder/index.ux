@@ -1,0 +1,199 @@
+<template>
+  <div class="root">
+    <div class="header-container">
+      <div class="header">
+        <image class="icon" src="../../Common/wuye/wuye-2@2x.png"></image>
+        <text class="icon-name">物业费</text>
+      </div>
+      <div class="info">
+        <div class="info-item">
+          <text class="label">预售公摊水电费余额：</text>
+          <div class="right">
+            <text class="money">¥</text>
+            <text class="value">{{paymentDetail.amount}}</text>
+          </div>
+        </div>
+        <div class="info-item">
+          <text class="label">预售物管费（住宅）余额：</text>
+          <div class="right">
+            <text class="money">¥</text>
+            <text class="value">{{paymentDetail.amount}}</text>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="middle">
+      <div style="display:flex; justify-content: space-between;margin: 22px;">
+        <text class="text1">小区名称：</text>
+        <text class="text2">{{paymentDetail.community_name}}</text>
+      </div>
+      <div style="display:flex; justify-content: space-between;margin: 22px;">
+        <text class="text1">住址信息：</text>
+        <text class="text2">{{paymentDetail.address}}</text>
+      </div>
+      <div style="display:flex; justify-content: space-between;margin: 22px;">
+        <text class="text1">缴费姓名：</text>
+        <text class="text2">{{paymentDetail.user_name}}</text>
+      </div>
+      <div style="display:flex; justify-content: space-between;margin: 22px;">
+        <text class="text1">身份类型：</text>
+        <text class="text2">户主</text>
+      </div>
+      <div style="display:flex; justify-content: space-between;margin: 22px;">
+        <text class="text1">联系电话：</text>
+        <text class="text2">{{paymentDetail.user_phone}}</text>
+      </div>
+      <div style="display:flex; justify-content: space-between;margin: 22px;">
+        <text class="text1">缴费类型：</text>
+        <text class="text2" style="color:rgba(142,41,39,1);">欠费缴费</text>
+      </div>
+    </div>
+    <div class="bottom">
+      <div class="label-title">
+        <text class="title">欠费明细 （元/月）</text>
+        <div class="all" @click="allSelect">
+          <image if="{{!isAllSelect}}" class="select" src="../../Common/wuye/icon-no-select@2x.png" />
+          <image else class="select" src="../../Common/wuye/all_selects.png" />
+          <text class="choice">全选</text>
+        </div>
+      </div>
+      <div class="list">
+        <div for="item in list" class="list-item">
+          <text class="time">{{item.beginPayDate}}</text>
+          <div class="item-right">
+            <div class="item-middle">
+              <div class="common">
+                <text class="label">{{item.accountName}}：</text>
+                <text class="label value">{{item.everyMonAccount}}</text>
+              </div>
+              <!-- <div class="common" style="margin-top: 16px;">
+                <text class="label">公摊费：</text>
+                <text class="label value">{{item.gongtan_amount}}</text>
+              </div> -->
+            </div>
+            <image @click="selectItem(item, !isSelected(item))" class="select" src="../../Common/wuye/{{!isSelected(item) ? 'icon-no-select@2x' : 'all_selects'}}.png" />
+            <!-- <image @click="selectItem(item)" else class="select" src="../../Common/wuye/all_selects.png" /> -->
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="fixed-container">
+    	<div class="left">
+        <text class="label">物业费合计：</text>
+        <div class="value">
+          <text class="money">¥</text>
+          <text style="font-size: 31px;font-weight:500;">{{totalMoney}}</text>
+        </div>
+      </div>
+      <input class="btn" type="button" value="立即缴费" onclick="onConfirm" />
+    </div>
+  </div>
+</template>
+
+<style lang="less">
+  @import './index.less';
+</style>
+
+<script>
+import prompt from '@system.prompt'
+import router from '@system.router'
+import request from '../../lib/request'
+import storage from '../../lib/storage'
+export default {
+  protected: {
+    payment_id: '32',                        // id
+    paymentDetail: {},                       // 详情
+    isCreateIcon: false,                     // 是否创建桌面图标
+    list: [],
+    totalMoney: 0,
+    isAllSelect: false,
+    selectArr: [],
+  },
+  
+  async onInit() {
+    this.getDetail()
+    const selectAddr = await storage.getJSON('selectAddr') || {}
+    const id = selectAddr.address_id || ''
+    if (id) {
+      await this.getMouthMountList(id)
+    }
+  },
+  getDetail() {
+    if (!this.payment_id) {
+      return
+    }
+    request.get(`payment/detail/${this.payment_id}`, { payment_id: this.noticeId }).then(({ data }) => {
+      if (data && data.payment_detail) {
+        this.paymentDetail = data.payment_detail
+      }
+    })
+  },
+
+  getMouthMountList(id) {
+    if (!id) {
+      return
+    }
+    request.get(`mouthamount?address_id=${5}`).then((res) => {
+      if (res && res.code === 0) {
+        this.list = res.data.mouth_amount
+      }
+    })
+  },
+
+  getTotalMoney(list) {
+    if (!Array.isArray(list) && !list.length) {
+      return 0
+    }
+    const total = list.map(item => Number(item.everyMonAccount)).reduce((acc, cur) => {
+      return acc + cur
+    }, 0)
+    return total.toFixed(2)
+  },
+
+  allSelect() {
+    if (this.isAllSelect) {
+      // 取消全选
+      this.isAllSelect = false
+      this.selectArr = []
+    } else {
+      // 全选
+      this.isAllSelect = true
+      this.selectArr = this.list.map(item => item)
+    }
+    this.totalMoney = this.getTotalMoney(this.selectArr)
+  },
+
+  // 多选
+  selectItem(row, select) {
+    if (!row) {
+      return null
+    }
+    
+    if (!select) {
+      const idIndex = this.selectArr.findIndex(item => item.id === row.id)
+      this.selectArr.splice(idIndex, 1)
+    } else {
+      this.selectArr.push(row)
+    }
+    if (this.list.length === this.selectArr.length) {
+      this.isAllSelect = true
+    } else {
+      this.isAllSelect = false
+    }
+    
+    this.totalMoney = this.getTotalMoney(this.selectArr)
+  },
+
+  isSelected(row){ // 判断是否选中
+    return !!this.selectArr.find(item => item.id === row.id)
+  },
+  onConfirm() {
+    // router.push ({
+    //   uri: '/WuYe/Pay', 
+    //   params: {
+    //     totalMoney: this.totalMoney
+    //   }
+    // })
+  }
+}
+</script>

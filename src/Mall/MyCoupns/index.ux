@@ -1,0 +1,181 @@
+<template>
+  <div class="root">
+    <list onscrollbottom="renderMoreListItem">
+      <block for="{{ (index, item) in coupon_list}}" >
+        <list-item type="product" class="list" onclick="routePage(item.coupon_id)">
+          <stack class="stack">
+            <image src="{{item.icon || '/Common/icon-mall-coupon@2x.png'}}"></image>
+            <!-- <input class="text" type="button" value="{{'有效期至：' + item.end_time.substring(0, 10)}}" /> -->
+          </stack>
+          <div class="div">
+            <text class="coupon_name">{{item.coupon_name}}</text> 
+            <input class="btn" type="button" value="已领取" />
+            <!-- <input class="btn" type="button" value="已领取" onclick="routePage(item.coupon_id)" /> -->
+          </div>
+        </list-item>
+      </block>
+      <list-item type="loadStatus" class="load-status">
+        <progress type="circular" show="{{hasMoreData}}"></progress>
+        <text show="{{hasMoreData}}">正在加载···</text>
+      </list-item>
+    </list>
+  </div>
+</template>
+<style>
+    .root {
+    display: flex;
+    flex-direction:column;
+    background-color:#FAFAFA;
+} 
+
+.stack {
+    height: 300px;
+    align-items: flex-start;
+ }
+
+.text {
+    width:239px;
+    height:34px;
+    background-color:rgba(0,0,0,0.5);
+    border-radius:10px;
+    font-size:20px;
+    font-family:PingFangSC-Regular;
+    font-weight:400;
+    color:rgba(252,252,252,1);
+    line-height:20px;
+}
+
+.root image {
+    border-radius: 10px;
+    width:599px;
+    height:273px;
+    margin-top: 20px;
+}
+
+.list {
+    flex-direction: column;
+    margin-bottom: 10px;
+    background-color:#FFFFFF;
+    padding: 0px 38px;
+}
+
+.div {
+    padding: 12px 0px;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.coupon_name {
+  flex: 1;
+  padding-right: 5px;
+}
+
+.root text {
+    margin-left: 0;
+    margin-right: 0; 
+    width:111px;
+    font-size:26px;
+    font-family:PingFangSC-Regular;
+    font-weight:400;
+    color:rgba(51,51,51,1);
+    line-height:26px;
+    padding-top: 3px;
+}
+
+.btn {
+    width:113px;
+    height:43px;
+    background-color:#999999;
+    color: #ffffff;
+    font-size:22px;
+    border-radius:21px;
+    font-family:PingFangSC-Regular;
+    font-weight:400;
+}
+    .load-status {
+        display: flex;
+        justify-content: center;
+        padding-top: 40px;
+    }
+</style>
+<script>
+import request from '../../lib/request'
+import storage from '../../lib/storage'
+import router from '@system.router'
+export default {
+  protected: {
+    page: 1,
+    pagesize: 5,
+    coupon_list: [],
+    freshing: false,  
+    hasMoreData: true,
+    isLoadingData: false
+  },
+  async onInit() {
+    const selectAddr = await storage.getJSON('selectAddr') || {}
+    const id = selectAddr.community_id || ''
+    try {
+      if (id) {
+        this.community_id = id
+        await this.getList() 
+      }
+    } catch(e) {
+      console.error(e)
+    }
+  },
+  // 刷新
+  onRefresh(evt) {
+    this.freshing = evt.refreshing
+    this.page = 1
+    setTimeout(() => {
+      this.freshing = false
+      this.getList()
+    }, 1000)
+  },
+  
+  getList(doRender = false) {
+    request.get(`usercoupon/list?page=${this.page}&pagesize=${this.pagesize}`).then(({ data }) => {
+      const coupon_list = data.coupon_list || []
+      if (!data) {
+        if (doRender) {
+          this.hasMoreData = false
+          return
+        }
+      }
+      if (!Array.isArray(coupon_list) || !coupon_list.length) {
+        setTimeout(() => {
+          this.isMoreData = true
+          this.hasMoreData = false
+        }, 3000)
+        return
+      }
+      if (doRender) {
+        this.coupon_list = this.coupon_list.concat(coupon_list)
+      } else {
+        this.coupon_list = coupon_list
+      }
+    })
+  },
+  /**
+   * 滑动到底部时加载更多
+   */
+  renderMoreListItem () {
+    if (!this.isLoadingData) {
+      this.hasMoreData = true
+      this.isMoreData = false
+    }
+    this.page++
+    this.getList(true)
+    setTimeout(() => {
+      this.hasMoreData = false
+    }, 500)
+  },
+  // 领取优惠券 => 详情页
+  routePage(id) {
+    if (id) {
+      router.push({ uri: '/Mall/CouponsShow', params: { couponId: id } })
+    }
+  },
+}
+</script>

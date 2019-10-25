@@ -1,0 +1,188 @@
+<template>
+  <div class="work-page">
+    <div class="header">
+      <div class="back">
+        <image @click="goBack" src="/Common/icon-back-black-arrow.png"></image>
+      </div>
+      <text class="title">工单追踪</text>
+      <text @click="goHistoty" class="histoty">历史记录</text>
+    </div>
+    <div class="empty" if="{{isEmpty}}">
+      <text>暂无工单记录</text>
+    </div>
+    <div else class="work-list-page" style="height: {{ deviceInfo.windowHeight + 'px' || 1300 + 'px' }}">
+      <list class="listContainer1" onscrollbottom="renderMoreListItem">
+        <block for="{{listData}}">
+          <!-- product -->
+          <list-item type="product1" class="list-item1">
+            <div class="item-top1">
+              <text class="label1">工单号：</text>
+              <div class="icon-value1" style="padding-top: 26px; padding-bottom: 26px;">
+                <text class="num1">{{$item.property_repair_no}}</text>
+              </div>
+            </div>
+            <div class="item-top1 item-common1">
+              <text class="label1">维修人员：</text>
+              <text class="value1">{{$item.service_engineer_name}}</text>
+            </div>
+            <div class="item-top1 item-common1">
+              <text class="label1">联系电话：</text>
+              <text class="value1">{{$item.service_engineer_phone}}</text>
+            </div>
+          </list-item>
+          <!-- banner -->
+          <list-item type="banner1" if="{{$item.isExpand}}" class="item-progress1">
+            <div class="progress-top1">
+              <image style="width: 30px;height: 30px;" src="/Common/work/zhongdian@2x.png"></image>
+              <text style="font-size:26px;color:rgba(142,41,39,1);padding-left: 20px;">维修进度</text>
+            </div>
+            <stack>
+              <div class="out1"></div>
+              <div class="inner1">
+                <block for="(index, row) in $item.repair_process">
+                  <div class="cu-coldCss1" style="margin-bottom:{{index !== $item.repair_process.length -1 ? 49 : 25}}px;">
+                    <div class="icon-labl1">
+                      <text class="dot1"></text>
+                      <text class="msg1">{{row.show_msg}}</text>
+                    </div>
+                    <text class="time1" >{{row.show_time}}</text>
+                  </div>
+                </block>
+                <text class="dot-end1"></text>
+              </div>
+
+            </stack>
+          </list-item>
+          <!-- expand -->
+          <list-item type="expand1" class="expand-list1">
+            <div class="expand1" @click="onExpand($item)">
+              <text class="expand-title1">{{$item.isExpand ? '收起' : '点击查看详情'}}</text>
+              <image class="expand-icon1" src="/Common/work/{{$item.isExpand ? 'icon-down' : 'xiangshang'}}@2x.png"></image>
+            </div>
+          </list-item>
+          <!-- black -->
+          <list-item type="black1" class="item-black1"></list-item>
+        </block>
+        <list-item type="loadStatus1" class="load-status1">
+          <progress type="circular" if="{{hasMoreData}}"></progress>
+          <text if="{{hasMoreData}}"></text>
+        </list-item>
+      </list>
+    </div>
+  </div>
+</template>
+
+<style lang="less">
+  @import './index.less';
+</style>
+
+<script>
+import prompt from '@system.prompt'
+import router from '@system.router'
+import request from '../../lib/request'
+import storage from '../../lib/storage'
+export default {
+  props: {
+    users: {
+      type: Object,
+      default: {}
+    }
+  },
+  data() {
+    return {
+      userInfo: this.users,
+      status: '0,2',                // 0未受理1已受理2进行中3已完成
+      freshing: false,              // 是否刷新
+      hasMoreData: true,            // 上拉加载数据状态
+      pageSize: 10,                 // 页数
+      pageIndex: 1,                 // 页码
+      isLoadingData: false,         // 是否正在fetch请求数据
+      listData: [],                 // 列表数据
+      isMoreData: false,            // 是否还有更多数据
+      isExpand: true,
+      isEmpty: false,
+      deviceInfo: {},
+    }
+  },
+  async onInit() {
+    // 获取数据并渲染列表
+    this.getList()
+    this.deviceInfo = await storage.getJSON('deviceInfo') || {}
+  },
+  goHistoty () {
+    router.push ({
+      uri: '/WorkOrder/HistoryList'
+    })
+  },
+  // 滑动到底部时加载更多
+  renderMoreListItem () {
+    if (!this.isLoadingData) {
+      this.hasMoreData = true
+      this.isMoreData = false
+    }
+    this.pageIndex++
+    this.getList(true)
+    setTimeout(() => {
+      this.hasMoreData = false
+    }, 3000)
+  },
+  // 获取列表数据
+  getList(doRender = false) {
+    request.get(`propertyrepair/history?page=${this.pageIndex}&pagesize=${this.pageSize}&status=${this.status}`).then(({ data }) => {
+      const newList = data.property_repair_list || []
+      const list = this.changeListIsExpand(true, newList) || []
+      if (!data) {
+        if (doRender) {
+          this.hasMoreData = false
+          return
+        } else {
+          this.isEmpty = true
+        }
+      }
+      if (!Array.isArray(list) || !list.length) {
+        if (doRender) {
+          setTimeout(() => {
+            this.isMoreData = true
+            this.hasMoreData = false
+          }, 3000)
+        } else {
+          this.hasMoreData = false
+          this.isEmpty = true
+        }
+        return
+      }
+      if (doRender) {
+        this.listData = this.listData.concat(list)
+      } else {
+        this.hasMoreData = false
+        this.listData = list 
+      }
+    })
+  },
+  changeListIsExpand(isExpand, list) {
+    if (Array.isArray(list) && !!list.length) {
+      return list.map(item => {
+        return {
+          ...item,
+          isExpand: isExpand,
+        }
+      })
+    }
+  },
+  onExpand(row) {
+    if(!row) {
+      return
+    }
+    this.listData = this.listData.map((item) => {
+      if (item.property_repair_id === row.property_repair_id) {
+        return {
+          ...item,
+          isExpand: !item.isExpand
+        }
+      } else {
+        return item
+      }
+    })
+  }
+}
+</script>

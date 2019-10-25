@@ -1,0 +1,96 @@
+<template>
+  <div class="is-container">
+    <swiper show="{{isShow}}" loop="{{loop}}" class="quist-swiper {{animationClass}}" indicator="{{showIndicator}}" interval="{{time}}" autoplay="{{autoplay}}" style="indicator-color: {{indicatorColor}}; indicator-selected-color: {{indicatorSelectedColor}}; indicator-size: {{indicatorSize}}; animation-duration: {{animationDuration}} ">
+      <div class="quist-swiper-item" for="{{childs}}" @click="choose($item)">
+        <image class="quist-swiper-image" src="{{$item.icon}}" />
+      </div>
+    </swiper>
+  </div>
+</template>
+
+<style lang="less">
+  .is-container {
+    width: 100%;
+    height: 290px;
+  }
+  /* .quist-swiper {
+  }
+  .quist-swiper-item {
+  } */
+  .quist-swiper-image {
+    width: 100%;
+    height: 290px;
+    object-fit: contain;
+		resize-mode: cover;
+  }
+  
+</style>
+
+<script>
+import prompt from '@system.prompt'
+import request from '../../lib/request'
+import storage from '../../lib/storage'
+export default {
+  props: {
+    loop: {
+      type: Boolean,
+      default: false
+		},
+    showIndicator: {
+      type: Boolean,
+      default: true
+		},
+    indicatorColor: {
+      type: String,
+      default: '#a0a0a0'
+    },
+    indicatorSelectedColor: {
+      type: String,
+      default: '#FE2446'
+		},
+		indicatorSize: {
+      type: String,
+      default: '8px'
+    },
+    autoplay: {
+      type: Boolean,
+      default: false
+		},
+    time: {
+			type: Number,
+      default: 3000
+		},
+    id: {
+			type: String,
+      default: ''
+		},
+  },
+  data() {
+    return {
+      isShow: true,              // 是否显示
+      childs: [],                // 组图数组
+      animationClass: '',        // 动画
+      animationDuration: 600,    // 动画过渡毫秒
+      remoteURL: 'http://www.w3school.com.cn/svg/',
+    }
+  },
+  async onInit() {
+    const selectAddr = await storage.getJSON('selectAddr') || {}
+    const community_id = selectAddr.community_id || ''
+    if (community_id) {
+      await this.initBanner(community_id)
+    }
+  },
+  choose(i) {
+    this.$emit('onClick', i)
+  },
+  async initBanner(community_id) {
+    await request.get(`banner?community_id=${community_id}`).then((res) => {
+      if (res.code === 0) {
+        const _data = res.data.banners || []
+        this.childs = _data
+      }
+    }) 
+  },
+}
+</script>

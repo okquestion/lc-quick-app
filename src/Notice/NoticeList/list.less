@@ -1,0 +1,121 @@
+@import '../../style.less';
+
+.tutorial-page {
+  flex-direction: column;
+  .banner-img {
+    width: 100%;
+    height: 290px;
+    resize-mode: contain;
+  }
+  .tab-bar {
+    width: 100%;
+    z-index: 111;
+    justify-content: space-around;
+    padding: 0px;
+    margin: 0px;
+    border-bottom-width: 1px;
+    border-bottom-color: @border-color;
+    background-color:rgba(251,251,251,1);
+  }
+  .tab-bar div{
+    flex-direction: column; 
+    padding: 0 25px;
+    width: 33.33%;
+    > text {
+      padding: 28px 0;
+      border-bottom-width: 5px; 
+      border-bottom-color: transparent; 
+      text-align: center; 
+      font-size: 30px;
+    }
+  }
+  .normal {
+    font-size:31px;
+    font-weight:400;
+    color:rgba(102,102,102,1);
+  }
+  .tab-bar .active {
+    color: @g-import-title;
+    font-weight: 400;
+    border-bottom-color: rgba(142,41,39,1);
+    font-size:31px;
+    font-weight:400;
+    color:rgba(142,41,39,1);
+  }
+  
+  .tab-content {
+    flex: 1;
+    .tab-content-section {
+      flex: 1;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: flex-start;
+      text {
+        text-align: center;
+        color: rgb(78, 90, 90);
+        padding: 10px 2px;
+      }
+    }
+  }
+  .listContainer {
+    flex-direction: column;
+    padding: 0 39px 20px;
+    .list-item {
+      width: 100%;
+      border-bottom-width: 1px;
+      border-bottom-color: @border-color;
+      .text-wrap {
+        width: 100%;
+        .left-wrap {
+          flex: 1;
+          flex-direction: column;
+          padding-right: 15px;
+          padding-bottom: 8px;
+          .titleCss {
+            flex: 1;
+            align-items: flex-start;
+            padding: 15px 0px;
+            .title {
+              text-align: left;
+              // white-space: nowrap;
+              // word-break: break-all;
+              font-size:24px;
+              font-weight:400;
+              color:rgba(51,51,51,1);
+              line-height:41px;
+            }
+          }
+          .time {
+            text-align: left;
+            font-size:20px;
+            font-weight:400;
+            color:rgba(102,102,102,1);
+            line-height:29px;
+          }
+        }
+        .right-wrap {
+          padding: 26px 0px;
+          width: 36%;
+          border: 0;
+          margin: 0;
+          height: 180px;
+          .imgContainer {
+            background-image: url('../../Common/icon-banner.png');
+            background-size: 100%;
+            background-repeat: no-repeat;
+            > image {
+              height: 100%;
+              border-radius: 6px;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .load-status {
+    display: flex;
+    justify-content: center;
+    padding-top: 40px;
+  }
+}

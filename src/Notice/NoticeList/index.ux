@@ -1,0 +1,169 @@
+<template>
+  <div class="tutorial-page">
+    <image src="/Common/icon-banner.png" class="banner-img" />
+    <tabs onchange="onChangeTabIndex" index={{0}}>
+      <tab-bar class="tab-bar" mode="scrollable">
+        <div for="{{tabHeadList}}">
+          <text class="{{currentIndex === $idx ? 'active' : 'normal'}}" >{{$item.typeName}}</text>
+        </div>
+      </tab-bar>
+      <tab-content class="tab-content">
+        <div class="tab-content-section" >
+          <!-- 列表实现，监听列表的scrollbottom事件，列表滚动到底部时加载更多数据 -->
+          <list class="listContainer" onscrollbottom="renderMoreListItem">
+            <block for="{{ (index, item) in listData }}">
+              <list-item type="product" class="list-item" onclick="routeDetail(item.notify_id)">
+                <div class="text-wrap" style="margin-top: 0px;">
+                  <div class="left-wrap">
+                    <div class="titleCss">
+                      <text class="title">{{item.notify_name}}</text>
+                    </div>
+                    <!-- <div class="titleCss">
+                      <text class="title">{{item.notify_name && item.notify_name !== '' ? item.notify_name : '无'}}</text>
+                    </div> -->
+                    <div class="cpCss">
+                      <text class="time">{{item.add_time}}</text>
+                    </div>
+                  </div>
+                  <div class="right-wrap">
+                    <div class="imgContainer">
+                      <image if="{{!item.pics}}" style="width: 100%;" src="/Common/icon-notice-right@2x.png"></image>
+                      <image else style="width: 100%;" src="{{item.pics}}" alt=""></image>
+                    </div>
+                  </div>
+                </div>
+              </list-item>
+            </block>
+            <list-item type="loadStatus" class="load-status">
+              <progress type="circular" show="{{hasMoreData}}"></progress>
+              <text show="{{hasMoreData}}">正在加载···</text>
+              <text show="{{isMoreData}}">没有更多了~</text>
+            </list-item>
+          </list>
+        </div>
+      </tab-content>
+    </tabs>
+  </div>
+</template>
+
+<style lang="less">
+  @import './list.less';
+</style>
+
+<script>
+import prompt from '@system.prompt'
+import router from '@system.router'
+import request from '../../lib/request'
+import shortcut from '@system.shortcut'
+const { noticeTabs } = require('../../lib/config')
+import storage from '../../lib/storage'
+export default {
+  data: {
+    types: noticeTabs,            // 静态分类数据
+    tabHeadList: noticeTabs,      // 分类列表数据
+    currentIndex: 0,              // 当前分类索引
+    typeId: 1,                    // 分类id
+    freshing: false,              // 是否刷新
+    hasMoreData: false,           // 上拉加载数据状态
+    pageSize: 10,                 // 页数
+    pageIndex: 1,                 // 页码
+    isLoadingData: false,         // 是否正在fetch请求数据
+    listData: [],                 // 列表数据
+    isMoreData: false,            // 是否还有更多数据
+    isCreateIcon: false,          // 是否创建桌面
+    total: 0,
+    community_id: '',  
+  },
+  async onInit(){
+    // 加载第一个tab内容
+    const selectAddr = await storage.getJSON('selectAddr') || {}
+    if (selectAddr && selectAddr.community_id) {
+      this.community_id = selectAddr.community_id
+      this.getList()
+    }
+  },
+  changeTabIndex(index) {
+    const item = Object.assign({}, this.tabHeadList[index])
+    item.render = true
+    this.tabHeadList.splice(index, 1, item)
+  },
+  // 切换分类tab
+  onChangeTabIndex (evt) {
+    this.currentIndex = evt.index
+    this.changeTabIndex(evt.index)
+    this.freshing = false
+    const typeId = this.tabHeadList.filter((item, index) => { return Number(this.currentIndex) === index } )[0].typeId
+    this.typeId = typeId
+    this.pageSize = 10
+    this.pageIndex = 1
+    this.getList()
+  },
+  renderTabContent (index) {
+    return !!this.tabHeadList[index].render
+  },
+  
+  // 刷新
+  onRefresh(evt) {
+    this.freshing = evt.refreshing
+    this.pageIndex = 1
+    setTimeout(() => {
+      this.freshing = false
+      this.getList()
+    }, 1000)
+  },
+  
+  // 滑动到底部时加载更多
+  renderMoreListItem () {
+    if (this.listData.length >= this.total) {
+      this.isMoreData = true
+      return
+    }
+    if (!this.isLoadingData) {
+      this.hasMoreData = true
+      this.isMoreData = false
+    }
+    this.pageIndex++
+    this.getList(true)
+    setTimeout(() => {
+      this.hasMoreData = false
+    }, 500)
+  },
+  // 跳转详情页
+  routeDetail(id) {
+    if (!id) return
+    router.push({
+      uri: '/Notice/NoticeDetail',
+      params: {
+        noticeId: id,
+      }
+    })
+  },
+  // 获取列表数据
+  getList(doRender = false) {
+    request.get(`notify/list?notify_type=${this.typeId}&page=${this.pageIndex}&pagesize=${this.pageSize}&community_id=${this.community_id}`).then(({ data }) => {
+      const notify_list = data.notify_list || []
+      if (!data) {
+        if (doRender) {
+          this.hasMoreData = false
+          return
+        }
+      }
+      if (!Array.isArray(notify_list) || !notify_list.length) {
+        if (doRender) {
+          setTimeout(() => {
+            this.isMoreData = true
+          }, 3000)
+          return
+        }
+      }
+      this.total = +(data && data.pager && data.pager.total || 0)
+      if (doRender) {
+        this.listData = this.listData.concat(notify_list)
+      } else {
+        this.listData = notify_list 
+      }
+    })
+  },
+}
+</script>
+  

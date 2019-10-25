@@ -1,0 +1,122 @@
+<template>
+  <div class="addr-page">
+    <text class="title" style="margin-top: 226px;">选择居住小区</text>
+    <select @change="onSelectPlot" class="select-css">
+      <option class="option-css" for="{{communities}}" value='{{$item.community_id}}' selected="true">{{$item.community_name}}</option>
+    </select>
+    <text class="title">选择住址</text>
+    <select @change="onSelectAddr" class="select-css">
+      <option class="option-css" for="{{addrs}}" value='{{$item.address_id}}' selected="true">{{$item.address}}</option>
+    </select>
+    <input class="btn" type="button" value="确定" onclick="onConfirm" />
+  </div>
+</template>
+
+<script>
+import router from '@system.router'
+import prompt from '@system.prompt'
+import User from '../lib/user'
+import storage from '../lib/storage'
+const user = new User()
+export default {
+  private: {
+    communities: [],    // 所有的小区
+    addresses: [],      // 所有的住址
+    addrs: [],          // 小区对应的住址
+    userInfo: {},       // 用户信息
+    selectAddr: null,   // 选中的地址
+  },
+  async onInit() {
+    const userInfo = await user.getLocal()
+    if (userInfo) {
+      this.userInfo = userInfo
+      const { communities, addresses } = userInfo || {}
+      this.communities = communities || []
+      const community_id = this.communities[0].community_id
+      this.addresses = addresses || []
+      this.addrs = this.addresses.filter(item => item.community_id === community_id)
+      // 默认选中的地址
+      this.selectAddr = this.addrs[0]
+      if (this.selectAddr) {
+        await storage.set('selectAddr', JSON.stringify(this.selectAddr))
+      }
+    }
+  },
+  onMenuPress() {
+    this.$app.$def.showMenu()
+  },
+  onConfirm () {
+    if (this.selectAddr) {
+      storage.set('selectAddr', this.selectAddr)
+      router.push ({
+        uri: '/Index',
+        params: {
+          selectAddr: this.selectAddr,
+          community_id: this.selectAddr.community_id || ''
+        }
+      })
+    } else {
+      prompt.showToast({
+        message: '请选择住址'
+      })
+    }
+  },
+  onSelectPlot (value) {
+    if (value && value.newValue) {
+      this.addrs = this.addresses.filter(item => item.community_id === value.newValue)
+    }
+  },
+  onSelectAddr (value) {
+    if (value && value.newValue) {
+      const addr = this.addrs.filter(item => item.address_id === value.newValue)
+      this.selectAddr = addr[0]
+    }
+  }
+}
+</script>
+
+<style>
+  .addr-page {
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+  }
+  .select-css {
+    width: 80%;
+    height:68px;
+    background-color:rgba(255,255,255,1);
+    border-radius:34px;
+    border:2px solid rgba(142,41,39,1);
+    margin-bottom: 15px;
+    padding: 0 20px;
+  }
+  .option-css {
+    font-size:26px;
+    height: 60px;
+    padding: 10px 5px;
+    font-weight:400;
+    color:rgba(51,51,51,1);
+    line-height:26px;
+  }
+  .title {
+    width: 80%;
+    margin-bottom: 10px;
+    height:29px;
+    font-size:20px;
+    font-weight:400;
+    color:rgba(142,41,39,1);
+    line-height:29px;
+    text-align: left;
+  }
+  .btn {
+    width: 80%;
+    margin-top: 210px;
+    height:68px;
+    background-color:rgba(142,41,39,1);
+    border-radius:34px;
+    font-size: 24px;
+    font-weight:400;
+    color:rgba(255,255,255,1);
+    line-height:34px;
+  }
+</style>

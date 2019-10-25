@@ -1,0 +1,133 @@
+.work-page {
+  flex-direction: column;
+  justify-content: flex-start;
+  flex: 1;
+  width: 100%;
+  background-color:rgba(251,251,251,1);
+  .top {
+    margin-top: 70px;
+    margin-bottom: 20px;
+    padding: 15px 20px;
+    background-color: #ffffff;
+    flex-direction: column;
+    .title {
+      justify-content: flex-start;
+      padding-bottom: 20px;
+      font-size:29px;
+      font-weight:400;
+      // color:#ffffff;
+      // margin-right: -86px;
+    }
+  }
+  .header {
+    padding: 15px 20px;
+    position: fixed;
+    top: 0px;
+    height: 70px;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(229,229,229,1);
+    background-color:rgba(153,153,153,1);
+    .back {
+      // display: none;
+      flex: 1;
+      > image {
+        width:29px;
+        height:29px;
+      }
+    }
+    .title {
+      flex: 1;
+      text-align: center;
+      font-size:29px;
+      font-weight:400;
+      color:#ffffff;
+      margin-right: -86px;
+    }
+    .histoty {
+      text-align: right;
+      flex: 1;
+      font-size:24px;
+      font-weight:400;
+      color:#000000;
+      line-height:29px;
+    }
+  }
+  .xui-input-round {
+    border: 1px solid #cccccc;
+    border-radius: 10px;
+    padding: 20px 30px;
+    background-color:rgba(236,236,236,1);
+    height: 80px;
+    font-size:24px;
+    font-weight:400;
+    color:rgba(153,153,153,1);
+    line-height:34px;
+  }
+  .add {
+    flex: 1;
+    padding: 0 20px;
+    margin-bottom: 82px;
+    // background-color:rgba(251,251,251,1);
+    background-color: #ffffff;
+    flex-direction: column;
+    > text {
+      padding: 20px 0px 14px 0px;
+    }
+    .add-css {
+      padding: 20px 0px;
+      .add-icon {
+        width:85px;
+        height:85px;
+      }
+    }
+  }
+  .content {
+    padding-top: 20px;
+    flex-wrap: wrap;
+    // justify-content: space-around;
+    align-items: center;
+  }
+  .image-container {
+    margin-bottom: 10px;
+    background-color: #ffffff;
+    background-image: url('../../Common/loading.png');
+    /* 等比例缩放背景图片到宽度为组件宽的一半 */
+    background-size: 100%;
+    /* 在水平方向和竖直方向上重复绘制 */
+    background-repeat: repeat;
+    /* 背景图片处于组件中央 */
+    background-position: center;
+    margin: 10px;
+    width:138px;
+    height:138px;
+    border: 1px solid #f1f1f1;
+  }
+  .xui-col {
+    flex-grow: 4;
+    width:138px;
+    height:138px;
+    object-fit: fill;
+  }
+}
+
+.fixed-container {
+  height:82px;
+  position: fixed;
+  bottom: 0;
+  background-color:rgba(255,255,255,1);
+  border-top-width: 2px;
+  border-top-color: rgba(229,229,229,1);
+  .btn {
+    flex: 1;
+    justify-content: center;
+    align-items: center;
+    background-color:rgba(142,41,39,1);
+    font-size:31px;
+    font-weight:400;
+    color:rgba(255,255,255,1);
+    line-height:43px;
+  }
+}
+  

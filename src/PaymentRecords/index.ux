@@ -1,0 +1,201 @@
+<template>
+  <div class="root">
+    <div class="select-container" style="height: {{height}}px;">
+      <select @change="selectPayType" class="select">
+        <option class="option" for={{types}} value='{{$item.typeId}}' selected="true">{{$item.typeName}}</option>
+      </select>
+    </div>
+    <list onscrollbottom="renderMoreListItem">
+      <block for="{{ (index, item) in payment_list}}" >
+        <list-item type="product" class="list" onclick="routeShow(item.payment_id)">
+          <div style="margin: 34px;">
+            <image src="../Common/jiaofei/icon-wuye@2x.png"></image> 
+          </div>
+          <div style="flex-direction:column;margin: 20px 0;width: 520px">
+            <div class="div">
+              <text class="text">物业费</text>
+              <text class="text1">¥2000.00</text>
+            </div>
+            <div style="flex-direction:column;margin-top: 20px">
+              <text class="text2">天雨方18栋-4单元-1107</text>
+              <text class="text3">{{item.add_time}}</text>
+            </div>
+          </div>
+        </list-item>
+      </block>
+      <list-item type="loadStatus" class="load-status">
+        <progress type="circular" show="{{hasMoreData}}"></progress>
+        <text show="{{hasMoreData}}">正在加载···</text>
+      </list-item>
+    </list>
+  </div>
+</template>
+<style>
+   .root {
+      display: flex;
+      flex-direction:column;
+      background-color:#FAFAFA;
+    }
+    .select-container {
+      padding: 20px;
+      /* z-index: 1000; */
+    }
+    .select {
+      width: 35%;
+      height:49px;
+      background-color:rgba(255,255,255,1);
+      border-radius:34px;
+      border-radius:14px;
+      border:2px solid #1F0101;
+      padding: 2px 20px;
+    }
+    .option {
+      font-size:26px;
+      padding: 5px 20px 5px 5px;
+      width: 200px;
+      font-weight:400;
+      color:rgba(51,51,51,1);
+      line-height:26px;
+      /* border-bottom-width: 2px;; */
+      /* border-bottom-color:rgba(142,41,39,1); */
+    }
+    .list {
+      display: flex;
+      margin-bottom: 10px;
+      background-color:#FFFFFF;
+      height: 154px;
+    }
+    .div {
+      display: flex;
+      justify-content: space-between; 
+    }
+    image {
+      width: 77px;
+      height: 77px;
+    }
+    .text {
+      /* width:58px; */
+      height:29px;
+      font-size:29px;
+      font-family:PingFangSC-Regular;
+      font-weight:400;
+      color:rgba(51,51,51,1);
+      line-height:29px;
+    }
+    .text1 {
+      width:111px;
+      height:27px;
+      font-size:20px;
+      font-family:PingFangSC-Medium;
+      font-weight:500;
+      color:rgba(142,41,39,1);
+      line-height:27px;
+    }
+
+    .text2 {
+      /* width:232px; */
+      height:22px;
+      font-size:22px;
+      font-family:PingFangSC-Regular;
+      font-weight:400;
+      color:rgba(51,51,51,1);
+      line-height:22px;
+    }
+    .text3 {
+      margin-top: 10px;
+      /* width:174px; */
+      height:22px;
+      font-size:19px;
+      font-family:PingFangSC-Regular;
+      font-weight:400;
+      color:rgba(102,102,102,1);
+      line-height:22px;
+    }
+    .load-status {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding-top: 30px;
+      padding-bottom: 30px;
+      height: 200px;
+    }
+</style>
+<script>
+import fetch from '@system.fetch'
+import request from '../lib/request'
+import router from '@system.router'
+const { payTypes } = require('../lib/config')
+
+export default {
+  protected: {
+    payment_type: 1,
+    page: 1,
+    pagesize: 10,
+    payment_list: [],
+    freshing: false,  
+    hasMoreData: true,
+    isLoadingData: false,
+    height: 89,
+    types: payTypes,            // 静态分类数据
+  },
+  onInit() {
+    this.getList()
+  },
+  // 刷新
+  onRefresh(evt) {
+    this.freshing = evt.refreshing
+    this.page = 1
+    setTimeout(() => {
+      this.freshing = false
+      this.getList()
+    }, 1000)
+  },
+  selectPayType (value) {
+    if (value && value.newValue) {
+      this.payment_type = value.newValue
+    }
+  },
+  
+  getList(doRender = false) {
+    request.get(`payment/list?payment_type=${this.payment_type}&page=${this.page}&pagesize=${this.pagesize}`).then(({ data }) => {
+      const payment_list = data.payment_list || []
+      if (!data) {
+        if (doRender) {
+          this.hasMoreData = false
+          return
+        }
+      }
+      if (!Array.isArray(payment_list) || !payment_list.length) {
+        setTimeout(() => {
+          this.hasMoreData = false
+          this.isMoreData = true
+        }, 3000)
+        return
+      }
+      if (doRender) {
+        this.payment_list = this.payment_list.concat(payment_list)
+      } else {
+        this.payment_list = payment_list
+      }})
+  },
+  /**
+   * 滑动到底部时加载更多
+   */
+  renderMoreListItem () {
+    if (!this.isLoadingData) {
+      this.hasMoreData = true
+      this.isMoreData = false
+    }
+    this.page++
+    this.getList(true)
+    setTimeout(() => {
+      this.hasMoreData = false
+    }, 500)
+  },
+  routeShow(id) {
+    if (id) {
+      router.push({ uri: '/WuYe/PayCostShow', params: { payment_id: id } })
+    }
+  }
+}
+</script>

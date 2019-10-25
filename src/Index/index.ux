@@ -1,0 +1,77 @@
+<import name="lc-tabs" src="../components/lc-tabs/index"></import>
+<import name="lc-home" src="../Home/index"></import>
+<import name="lc-work-order" src="../WorkOrder/Main/index"></import>
+<import name="lc-profile" src="../Profile/index"></import>
+
+<template>
+  <div class="page-container">
+    <lc-tabs name="{{pageName}}" @on-change-tab-index="onChange"></lc-tabs>
+    <div class="flexible-tab-content">
+      <!-- if会重新绘制页面，show(会保留生命周期，做到缓存路由页面的效果) -->
+      <div class="tab-content-section" show="{{ renderTabContent(0) }}">
+        <lc-home users="{{userInfo}}" id="{{community_id}}"></lc-home>
+      </div>  
+      <div class="tab-content-section" if="{{ renderTabContent(1) }}">
+        <lc-work-order users="{{userInfo}}"></lc-work-order>
+      </div>
+      <div class="tab-content-section" if="{{ renderTabContent(2) }}">
+        <lc-profile users="{{userInfo}}"></lc-profile>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style lang="less">
+  @import './index.less';
+</style>
+
+<script>
+import prompt from '@system.prompt'
+import User from '../lib/user'
+import device from '@system.device'
+import storage from '../lib/storage';
+const user = new User()
+
+export default {
+  protected: {
+    title: '首页',
+    list: [],
+    pageName: 'Home',       // 当前页面
+    currentIndex: 0,        // tab索引
+    userInfo: {},           // 全局登陆用户信息
+    selectAddr: {},         // 
+    community_id: '',
+  },
+  async onInit() {
+    const userInfo = await user.getLocal()
+    if (userInfo) {
+      this.userInfo = userInfo
+    }
+  },
+  async onShow() {
+    const userInfo = await user.getLocal()
+    if (userInfo) {
+      this.userInfo = userInfo
+    }
+  },
+  onReady() {
+    device.getInfo({
+      success: async (ret) => {
+        if (ret) {
+          await storage.set('deviceInfo', ret)
+        } 
+      },
+      fail: (data, code) => {
+        console.error(`getinfo handling fail, code = ${code}`)
+      }
+    })
+  },
+  onChange(e) {
+    this.currentIndex = e.detail.index
+  },
+  // 懒加载
+  renderTabContent (index) {
+    return !!(this.currentIndex === index)
+  },
+}
+</script>
